@@ -1,0 +1,31 @@
+version: '3.8'
+
+x-shared: &shared
+  restart: always
+  image: docker.n8n.io/n8nio/n8n:1.91.3
+  env_file: .env
+  user: "1000:1000"
+  volumes:
+    - /opt/n8n_stack/n8n_storage:/home/node/.n8n
+    - ./healthcheck.js:/healthcheck.js
+  depends_on:
+    redis:
+      condition: service_healthy
+    postgres:
+      condition: service_healthy
+
+services:
+  postgres:
+    image: postgres:11
+    restart: always
+    env_file: .env
+    volumes:
+      - /opt/n8n_stack/db_storage:/var/lib/postgresql/data
+      - ./init-data.sh:/docker-entrypoint-initdb.d/init-data.sh
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -h localhost -U ${POSTGRES_USER} -d ${POSTGRES_DB}']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis:
