@@ -1,0 +1,14 @@
+[Unit]
+Description=n8n Stack
+After=network.target
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+WorkingDirectory=/opt/n8n_stack
+ExecStart=/usr/bin/podman-compose -f docker-compose.yml up -d
+ExecStop=/usr/bin/podman-compose -f docker-compose.yml down
+TimeoutStartSec=0
+
+[Install]
+WantedBy=multi-user.target
