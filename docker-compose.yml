@@ -29,3 +29,33 @@ services:
       retries: 10
 
   redis:
+    image: redis:6-alpine
+    restart: always
+    volumes:
+      - /opt/n8n_stack/redis_storage:/data
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  n8n:
+    <<: *shared
+    ports:
+      - "5678:5678"
+    healthcheck:
+      test: ["CMD", "node", "/healthcheck.js"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  n8n-worker:
+    <<: *shared
+    command: worker
+    depends_on:
+      - n8n
+    healthcheck:
+      test: ["CMD-SHELL", "node -e 'process.exit(0)'"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
